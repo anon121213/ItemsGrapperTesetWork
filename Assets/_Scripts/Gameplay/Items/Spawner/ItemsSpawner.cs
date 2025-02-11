@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using _Scripts.Data.AssetLoader;
 using _Scripts.Data.DataProvider;
 using _Scripts.Gameplay.Items.Container;
+using _Scripts.Gameplay.Items.Factory;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using VContainer;
-using VContainer.Unity;
 using Random = UnityEngine.Random;
 
 namespace _Scripts.Gameplay.Items.Spawner
@@ -17,19 +16,19 @@ namespace _Scripts.Gameplay.Items.Spawner
     private readonly Collider[] _results = new Collider[10];
 
     private readonly IStaticDataProvider _staticDataProvider;
+    private readonly IItemsFactory _itemsFactory;
     private readonly IAssetProvider _assetProvider;
     private readonly IItemsContainer _itemsContainer;
-    private readonly IObjectResolver _resolver;
 
     public ItemsSpawner(IStaticDataProvider staticDataProvider,
+      IItemsFactory itemsFactory,
       IAssetProvider assetProvider,
-      IItemsContainer itemsContainer,
-      IObjectResolver resolver)
+      IItemsContainer itemsContainer)
     {
       _staticDataProvider = staticDataProvider;
+      _itemsFactory = itemsFactory;
       _assetProvider = assetProvider;
       _itemsContainer = itemsContainer;
-      _resolver = resolver;
     }
 
     public async UniTask SpawnItems()
@@ -38,18 +37,18 @@ namespace _Scripts.Gameplay.Items.Spawner
 
       foreach (var spawnPoint in _spawnPoints)
       {
-        Item item = await GetItem(spawnPoint);
+        int itemIndex = await GetItem(spawnPoint);
 
-        if (item == null)
+        if (itemIndex < 0)
           continue;
 
-        item = _resolver.Instantiate(item, spawnPoint, Quaternion.identity);
+        Item item = await _itemsFactory.CreateItem(itemIndex, spawnPoint);
 
         _itemsContainer.AddItem(item);
       }
     }
 
-    private async UniTask<Item> GetItem(Vector3 spawnPoint)
+    private async UniTask<int> GetItem(Vector3 spawnPoint)
     {
       List<int> triedIndices = new List<int>();
 
@@ -71,11 +70,11 @@ namespace _Scripts.Gameplay.Items.Spawner
         Physics.OverlapBoxNonAlloc(spawnPoint, size / 2, _results);
 
         if (_results.Length == 0 || _results[0] == null)
-          return item.GetComponent<Item>();
+          return assetIndex;
       }
 
       Debug.LogWarning("Failed to find a valid spawn point after checking all items.");
-      return null;
+      return -1;
     }
   }
 }

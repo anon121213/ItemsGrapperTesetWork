@@ -21,6 +21,9 @@ namespace _Scripts.Infrastructure.Factories.Cameras
       _assetProvider = assetProvider;
     }
 
+    public async UniTask Warmup() => 
+      await _assetProvider.LoadAssetAsync<Camera>(_staticDataProvider.CameraSetting.Prefab);
+
     public async UniTask CreateCamera()
     {
       Camera prefab = await _assetProvider.LoadAssetAsync<Camera>(_staticDataProvider.CameraSetting.Prefab);

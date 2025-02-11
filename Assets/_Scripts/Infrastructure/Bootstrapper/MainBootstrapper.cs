@@ -6,6 +6,7 @@ using _Scripts.Infrastructure.CameraProvider;
 using _Scripts.Infrastructure.Factories.Cameras;
 using _Scripts.Infrastructure.Factories.Player;
 using _Scripts.Infrastructure.Loader;
+using _Scripts.Infrastructure.Warmup;
 using _Scripts.Infrastructure.WinSystem;
 using UnityEngine;
 using VContainer.Unity;
@@ -25,6 +26,7 @@ namespace _Scripts.Infrastructure.Bootstrapper
     private readonly ICameraProvider _cameraProvider;
     private readonly ICameraRotator _cameraRotator;
     private readonly IPlayerServices _playerServices;
+    private readonly IWarmupService _warmupService;
 
     public MainBootstrapper(ISceneLoader sceneLoader,
       IPlayerFactory playerFactory,
@@ -34,7 +36,8 @@ namespace _Scripts.Infrastructure.Bootstrapper
       ICameraFactory cameraFactory,
       ICameraProvider cameraProvider,
       ICameraRotator cameraRotator,
-      IPlayerServices playerServices)
+      IPlayerServices playerServices,
+      IWarmupService warmupService)
     {
       _sceneLoader = sceneLoader;
       _playerFactory = playerFactory;
@@ -45,6 +48,7 @@ namespace _Scripts.Infrastructure.Bootstrapper
       _cameraProvider = cameraProvider;
       _cameraRotator = cameraRotator;
       _playerServices = playerServices;
+      _warmupService = warmupService;
     }
 
     public async void Initialize()
@@ -52,8 +56,10 @@ namespace _Scripts.Infrastructure.Bootstrapper
       Application.targetFrameRate = FRAMERATE;
       Cursor.lockState = CursorLockMode.Locked;
       Cursor.visible = false;
-
+      
       _inputService.Initialize();
+      
+      await _warmupService.Warmup();
       await _sceneLoader.Load(SceneNamesConstants.GameScene);
       await _cameraFactory.CreateCamera();
 
@@ -62,8 +68,7 @@ namespace _Scripts.Infrastructure.Bootstrapper
 
       CameraFollow follower = _cameraProvider.MainCamera.GetComponent<CameraFollow>();
       follower.Initialize(player.transform, new Vector3(0, 0.8f, 0));
-
-
+      
       await _itemSpawner.SpawnItems();
       _winService.Initialize();
     }

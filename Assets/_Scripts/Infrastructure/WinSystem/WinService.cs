@@ -1,6 +1,5 @@
 ﻿using System;
 using _Scripts.Gameplay.Items.Container;
-using UnityEngine;
 
 namespace _Scripts.Infrastructure.WinSystem
 {
@@ -15,11 +14,8 @@ namespace _Scripts.Infrastructure.WinSystem
     public void Initialize() =>
       _itemsContainer.AllItemsDelivered += Win;
 
-    private void Win()
-    {
-      Debug.Log("Asd");
+    private void Win() => 
       OnWin?.Invoke();
-    }
   }
 
   public interface IWinService

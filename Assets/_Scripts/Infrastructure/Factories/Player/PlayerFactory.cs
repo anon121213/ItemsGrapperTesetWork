@@ -34,10 +34,14 @@ namespace _Scripts.Infrastructure.Factories.Player
       _cameraProvider = cameraProvider;
     }
 
+    public async UniTask Warmup()
+    {
+      await _assetProvider.LoadAssetAsync(_staticDataProvider.PlayerSettings.Prefab);
+    }
+
     public async UniTask<GameObject> CreatePlayer()
     {
-      GameObject playerPrefab = await _assetProvider
-        .LoadAssetAsync(_staticDataProvider.PlayerSettings.Prefab);
+      GameObject playerPrefab = await _assetProvider.LoadAssetAsync(_staticDataProvider.PlayerSettings.Prefab);
 
       GameObject player = _resolver.Instantiate(playerPrefab,
         _staticDataProvider.PlayerSettings.SpawnPoint, Quaternion.identity);
